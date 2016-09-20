@@ -1,0 +1,244 @@
+﻿<UserControl x:Class="ViDi2.Training.UI.CameraControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:v="clr-namespace:ViDi2.Training.UI"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <v:ObjectToVisibilityConverter x:Key="o2v"/>
+                    <v:ListToVisibilityConverter x:Key="l2v"/>
+                    <v:ListToVisibilityConverterInv x:Key="l2vi"/>
+
+                    <CollectionViewSource Source="{Binding Cameras}" x:Key="GroupedCameras">
+                        <CollectionViewSource.GroupDescriptions>
+                            <PropertyGroupDescription PropertyName="Provider"/>
+                        </CollectionViewSource.GroupDescriptions>
+                    </CollectionViewSource>
+
+                    <DataTemplate DataType="{x:Type v:BoolValueItem}">
+                        <CheckBox IsChecked="{Binding Value}" IsEnabled="{Binding IsEnabled}"/>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type v:DoubleValueItem}">
+                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type v:IntValueItem}">
+                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type v:SizeValueItem}">
+                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type v:PointValueItem}">
+                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type v:SelectionValueItem}">
+                        <ComboBox SelectedItem="{Binding Value}" ItemsSource="{Binding Values}"
+                                  IsReadOnly="{Binding IsReadOnly}"/>
+                    </DataTemplate>
+
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <Grid>
+            <Border BorderBrush="Gray" BorderThickness="0,0,0,1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="10,0" SpreadMethod="Repeat" Opacity="0.2" 
+                                 MappingMode="Absolute" >
+                        <GradientStop Offset="0.0" Color="Black"/>
+                        <GradientStop Offset="0.5" Color="Black"/>
+                        <GradientStop Offset="0.5" Color="White"/>
+                        <GradientStop Offset="1.0" Color="White"/>
+                        <LinearGradientBrush.Transform>
+                            <RotateTransform Angle="45"/>
+                        </LinearGradientBrush.Transform>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border CornerRadius="7" Padding="7,3,7,5" HorizontalAlignment="Center" VerticalAlignment="Center" Background="White">
+                    <TextBlock FontStyle="Italic" TextAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="no image grabbed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Camera}" Value="{x:Null}">
+                                        <Setter Property="Text" Value="no camera selected"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Cameras.Count}" Value="0">
+                                        <Setter Property="Text" Value="no cameras available"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Border>
+            </Border>
+            <Image Name="CameraThumbnailImage" Source="{Binding CurrentImageSource}">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ElementName=CameraThumbnailImage, Path=Source}" Value="{x:Null}">
+                                <Setter Property="MinHeight" Value="240"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+        </Grid>
+
+        <StackPanel Margin="5">
+            <DockPanel>
+                <Button Content="Discover" Command="v:CameraPanelCommands.Discover"
+                        ToolTip="Ask all providers to list their cameras"
+                        DockPanel.Dock="Right" Margin="5,0,0,0" Padding="5,0"/>
+                <ComboBox ItemsSource="{Binding Source={StaticResource GroupedCameras}}"
+                          DisplayMemberPath="Camera.Name" SelectedValuePath="Camera" 
+                          SelectedValue="{Binding Camera}">
+                    <ComboBox.Style>
+                        <Style TargetType="ComboBox">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Cameras.Count}" Value="0">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Camera.IsGrabbingContinuous}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ComboBox.Style>
+                    <ComboBox.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Background="LightGray" 
+                                               FontStyle="Italic" Padding="2"/>
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </ComboBox.GroupStyle>
+                </ComboBox>
+            </DockPanel>
+
+            <UniformGrid Name="CameraActions" Columns="4" Margin="0,5,0,0">
+                <Button Content="Snapshot" Command="v:CameraPanelCommands.GrabSingle">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding  Camera.Capabilities.CanGrabSingle}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Content="Live" Command="v:CameraPanelCommands.StartGrabContinuous" Margin="5,0">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Camera.Capabilities.CanGrabContinuous}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Content="Stop" Command="v:CameraPanelCommands.StopGrabContinuous">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Camera.Capabilities.CanGrabContinuous}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Content="Add" Command="v:CameraPanelCommands.AddImageToDatabase" Margin="5,0,0,0"/>
+            </UniformGrid>
+        </StackPanel>
+        <Expander Name="CameraParameters" ExpandDirection="Down" IsExpanded="False" Margin="5,0,5,5">
+            <Expander.Style>
+                <Style TargetType="Expander">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Camera}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Camera.Parameters.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Expander.Style>
+            <Expander.Header>
+                <Menu Background="Transparent">
+                    <MenuItem Header="Parameters">
+                        <MenuItem Command="v:CameraPanelCommands.LoadParametersFromFile">
+                            <MenuItem.Style>
+                                <Style TargetType="MenuItem">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Camera.Capabilities.CanSaveParametersToFile}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Camera.Capabilities.CanSaveParametersToFile}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </MenuItem.Style>
+                        </MenuItem>
+                        <MenuItem Command="v:CameraPanelCommands.SaveParametersToFile">
+                            <MenuItem.Style>
+                                <Style TargetType="MenuItem">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Camera.Capabilities.CanSaveParametersToFile}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </MenuItem.Style>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Command="v:CameraPanelCommands.SaveParametersToDevice">
+                            <MenuItem.Style>
+                                <Style TargetType="MenuItem">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Camera.Capabilities.CanSaveParametersToDevice}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </MenuItem.Style>
+                        </MenuItem>
+                    </MenuItem>
+                </Menu>
+            </Expander.Header>
+            <StackPanel Grid.IsSharedSizeScope="True">
+                <ItemsControl ItemsSource="{Binding Parameters}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition SharedSizeGroup="name"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="{Binding Name}" HorizontalContentAlignment="Right"/>
+                                <ContentPresenter Content="{Binding Value}" VerticalAlignment="Center" Grid.Column="1"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </Expander>
+    </StackPanel>
+</UserControl>

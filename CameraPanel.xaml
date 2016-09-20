@@ -1,0 +1,17 @@
+﻿<Window x:Class="ViDi2.Training.UI.CameraPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:v="clr-namespace:ViDi2.Training.UI"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" Width="330" MinWidth="320"
+             SizeToContent="Height"
+             Title="Camera Panel">
+    <Grid>
+        <v:CameraControl x:Name="cameraControl"/>
+       <!-- <v:CameraControl Name="cameraControl"/> -->
+    </Grid>
+  
+</Window>
+
