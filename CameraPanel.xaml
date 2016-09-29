@@ -9,8 +9,10 @@
              SizeToContent="Height"
              Title="Camera Panel">
     <Grid>
-        <v:CameraControl x:Name="cameraControl"/>
-       <!-- <v:CameraControl Name="cameraControl"/> -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <v:CameraControl x:Name="cameraControl"/>
+        </ScrollViewer>
+        <!-- <v:CameraControl Name="cameraControl"/> -->
     </Grid>
   
 </Window>

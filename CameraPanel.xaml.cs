@@ -88,6 +88,8 @@ namespace ViDi2.Training.UI
                 }
             }
 
+            //mainMenuItem.Items.Add(discoverMenuItem);
+
             UpdateProviders();
 
             StartProcessTask();
