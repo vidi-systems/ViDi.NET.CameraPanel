@@ -40,6 +40,10 @@
                         <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
                     </DataTemplate>
 
+                    <DataTemplate DataType="{x:Type v:StringValueItem}">
+                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                    </DataTemplate>
+
                     <DataTemplate DataType="{x:Type v:SelectionValueItem}">
                         <ComboBox SelectedItem="{Binding Value}" ItemsSource="{Binding Values}"
                                   IsReadOnly="{Binding IsReadOnly}"/>
