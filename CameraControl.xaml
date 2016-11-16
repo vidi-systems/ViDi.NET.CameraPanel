@@ -21,27 +21,31 @@
                     </CollectionViewSource>
 
                     <DataTemplate DataType="{x:Type v:BoolValueItem}">
-                        <CheckBox IsChecked="{Binding Value}" IsEnabled="{Binding IsEnabled}"/>
+                        <CheckBox IsChecked="{Binding Value, ValidatesOnExceptions=True}" IsEnabled="{Binding IsEnabled}"/>
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type v:DoubleValueItem}">
-                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                        <TextBox Text="{Binding Value, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}"/>
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type v:IntValueItem}">
-                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                        <TextBox Text="{Binding Value, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}"/>
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type v:SizeValueItem}">
-                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                        <TextBox Text="{Binding Value, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}"/>
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type v:PointValueItem}">
-                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                        <TextBox Text="{Binding Value, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}"/>
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type v:RectValueItem}">
+                        <TextBox Text="{Binding Value, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}"/>
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type v:StringValueItem}">
-                        <TextBox Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                        <TextBox Text="{Binding Value, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}"/>
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type v:SelectionValueItem}">

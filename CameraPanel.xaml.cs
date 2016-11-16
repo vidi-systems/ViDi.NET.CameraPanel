@@ -22,18 +22,23 @@ using System.Collections.ObjectModel;
 
 namespace ViDi2.Training.UI
 {
-  
     /// <summary>
     /// Camera Panel Plugin
     /// </summary>
     public partial class CameraPanel : Window, IPlugin
     {
-
         public CameraPanel()
         {
             InitializeComponent();
-            
-            cameraControl.Grabbed = (IImage img) => this.GrabbedCallback(img) ;
+
+            cameraControl.ImageGrabbed += (sender, img) => 
+            {
+                lock (pendingProcessImageMutex)
+                {
+                    pendingProcessImage = img;
+                    Monitor.PulseAll(pendingProcessImageMutex);
+                }
+            };
 
             Closing += (o, a) =>
             {
@@ -60,7 +65,7 @@ namespace ViDi2.Training.UI
 
             MenuItem showPanelItem = new MenuItem { Header = "Camera Panel" };
 
-            showPanelItem.Click += (o, a) => 
+            showPanelItem.Click += (o, a) =>
             {
                 Show();
                 Activate();
@@ -69,7 +74,8 @@ namespace ViDi2.Training.UI
             mainMenuItem.Items.Add(showPanelItem);
             context.MainWindow.MainMenu.Items.Add(mainMenuItem);
 
-            context.MainWindow.ToolChain.StreamSelected += (a) => { cameraControl.Stream = (a as IStream); };
+            context.MainWindow.ToolChain.StreamSelected += 
+                (stream) => { cameraControl.Stream = stream; };
 
             providersMenuItem = new MenuItem
             {
@@ -79,7 +85,6 @@ namespace ViDi2.Training.UI
 
             mainMenuItem.Items.Add(providersMenuItem);
 
-            
             foreach (IPlugin plugin in context.Plugins)
             {
                 if (plugin is ICameraProvider)
@@ -95,15 +100,13 @@ namespace ViDi2.Training.UI
             StartProcessTask();
         }
 
-         private void UpdateProviders()
+        private void UpdateProviders()
         {
-
             providersMenuItem.Items.Clear();
 
             foreach (var plugin in context.Plugins)
             {
-                if (plugin is ICameraProvider
-                    &&
+                if (plugin is ICameraProvider &&
                     !cameraControl.Providers.Exists(p => p == plugin))
                 {
                     cameraControl.Providers.Add(plugin as ICameraProvider);
@@ -157,7 +160,9 @@ namespace ViDi2.Training.UI
                         pendingProcessImage = null;
                     }
 
-                    if (context.MainWindow.IsProductionMode && context.MainWindow.ToolChain.Tool != null)
+                    if (context.MainWindow.IsProductionMode && 
+                        context.MainWindow.ToolChain.Tool != null &&
+                        processImage != null)
                     {
                         try
                         {
@@ -188,20 +193,8 @@ namespace ViDi2.Training.UI
         readonly object pendingProcessImageMutex = new object();
         IImage pendingProcessImage;
 
-        private void GrabbedCallback(IImage img)
-        {
-           cameraControl.CurrentImage  = img;
-
-            lock (pendingProcessImageMutex)
-            {
-                pendingProcessImage = img;
-                Monitor.PulseAll(pendingProcessImageMutex);
-            }
-        }
-
         IPluginContext context;
         MenuItem mainMenuItem;
         MenuItem providersMenuItem;
-
     }
 }

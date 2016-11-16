@@ -127,6 +127,7 @@ namespace ViDi2.Training.UI
     public class IntValueItem : ValueItem<int> { }
     public class SizeValueItem : ValueItem<Size> { }
     public class PointValueItem : ValueItem<Point> { }
+    public class RectValueItem : ValueItem<Rect> { }
     public class StringValueItem : ValueItem<String> { }
 
     public class SelectionValueItem : ValueItem<object>
@@ -153,6 +154,8 @@ namespace ViDi2.Training.UI
                 Value = new SizeValueItem { Parameter = parameter };
             else if (type == typeof(Point))
                 Value = new PointValueItem { Parameter = parameter };
+            else if (type == typeof(Rect))
+                Value = new RectValueItem { Parameter = parameter };
             else if (type == typeof(String))
                 Value = new StringValueItem { Parameter = parameter };
         }
@@ -166,7 +169,6 @@ namespace ViDi2.Training.UI
     /// </summary>
     public partial class CameraControl : UserControl, INotifyPropertyChanged
     {
-
         IStream stream;
         IImage currentImage;
 
@@ -179,7 +181,7 @@ namespace ViDi2.Training.UI
                 if (camera != null)
                 {
                     camera.Close();
-                    camera.ImageGrabbed -= GrabbedCallback;
+                    camera.ImageGrabbed -= OnImageGrabbed;
                 }
 
                 camera = value;
@@ -189,13 +191,13 @@ namespace ViDi2.Training.UI
                 if (!camera.IsOpen)
                     camera.Open();
 
-                camera.ImageGrabbed += GrabbedCallback;
+                camera.ImageGrabbed += OnImageGrabbed;
 
                 RaisePropertyChanged("Camera");
                 RaisePropertyChanged("Parameters");
             }
         }
-        SaveCommandBinding AddToDatabaseBinding;
+        
         public CameraControl()
         {
             InitializeComponent();
@@ -211,20 +213,12 @@ namespace ViDi2.Training.UI
                 (o, e) => e.CanExecute = Camera != null && Camera.IsGrabbingContinuous));
 
             CommandBindings.Add(new SaveCommandBinding(CameraPanelCommands.GrabSingle,
-                (o, e) => GrabbedCallback(Camera,Camera.GrabSingle()),
+                (o, e) => OnImageGrabbed(Camera,Camera.GrabSingle()),
                 (o, e) => e.CanExecute = Camera != null && !Camera.IsGrabbingContinuous));
 
-             AddToDatabaseBinding = new SaveCommandBinding(CameraPanelCommands.AddImageToDatabase,
-                (o, e) =>
-                {
-                    AddCurrentImageToDatabase();
-                },
-                (o, e) =>
-                {
-                    e.CanExecute = currentImage != null && Stream != null && Stream.Tools.Count > 0;
-                });
-
-            CommandBindings.Add(AddToDatabaseBinding);
+            CommandBindings.Add(new SaveCommandBinding(CameraPanelCommands.AddImageToDatabase,
+                (o, e) => AddCurrentImageToDatabase(),
+                (o, e) => e.CanExecute = currentImage != null && Stream != null && Stream.Tools.Count > 0));
 
             CommandBindings.Add(new SaveCommandBinding(CameraPanelCommands.Discover,
                 (o, e) =>
@@ -349,7 +343,6 @@ namespace ViDi2.Training.UI
             }
         }
 
-
         public void AddCurrentImageToDatabase()
         {
             if (currentImage != null && Stream != null && Stream.Tools.Count > 0)
@@ -364,12 +357,11 @@ namespace ViDi2.Training.UI
 
         public IImage CurrentImage
         {
-            /*get
-           {
+            get
+            {
                 return currentImage;
             }
-             * */
-            set
+            private set
             {
                 lock (currentImageMutex)
                 {
@@ -381,20 +373,14 @@ namespace ViDi2.Training.UI
             }
         }
 
-
-
-        public Action<IImage> Grabbed { get; set; } // <= to event
-
-        private void GrabbedCallback(ICamera sender, IImage img)
+        private void OnImageGrabbed(ICamera sender, IImage img)
         {
-            currentImage = img;
+            CurrentImage = img;
 
-            if(Grabbed != null)
-               Grabbed(img);
-
+            if (ImageGrabbed != null)
+               ImageGrabbed(sender, img);
         }
 
-
-
+        public event ImageGrabbedHandler ImageGrabbed;
     }
 }
